@@ -25,9 +25,9 @@ public class GameBoard {
 	}
 	
 	private void fillBoard(BoardCellState state) {
-		for (int i = 0; i < boardHeight; i++) {
-			for (int y = 0; y < boardWidth; y++) {
-				boardState[i][y] = state;
+		for (int boardRow = 0; boardRow < boardHeight; boardRow++) {
+			for (int boardColumn = 0; boardColumn < boardWidth; boardColumn++) {
+				boardState[boardRow][boardColumn] = state;
 			}
 		}
 	}
