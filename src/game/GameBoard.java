@@ -1,5 +1,7 @@
 package game;
 
+import java.util.Arrays;
+
 enum BoardCellState {EMPTY, ALIVE, HIT, DESTROYED};
 
 public class GameBoard {
@@ -15,10 +17,19 @@ public class GameBoard {
 		this.boardWidth = boardWidth;
 		this.boardHeight = boardHeight;
 		boardState = new BoardCellState[boardWidth][boardHeight];
+		fillBoard(BoardCellState.EMPTY);
 	}
 	
 	public GameBoard() {
 		this(DAFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
+	}
+	
+	private void fillBoard(BoardCellState state) {
+		for (int i = 0; i < boardHeight; i++) {
+			for (int y = 0; y < boardWidth; y++) {
+				boardState[i][y] = state;
+			}
+		}
 	}
 	
 	private String convertBoardToString() {
@@ -30,9 +41,9 @@ public class GameBoard {
 		board.append("\n");
 		
 		for (int boardRow = 0; boardRow < boardHeight; boardRow++) {
-			board.append((char) (boardRow + 'A'));
+			board.append((char) (boardRow + 'A') + " ");
 			for (int boardColumn = 0; boardColumn < boardWidth; boardColumn++) {
-				board.append(getCharacterBasedOnState(boardState[boardRow][boardColumn]));
+				board.append(getCharacterBasedOnState(boardState[boardRow][boardColumn]) + " ");
 			}
 			board.append("\n");
 		}	
@@ -42,9 +53,9 @@ public class GameBoard {
 	
 	private char getCharacterBasedOnState(BoardCellState state) {
 		if (state == BoardCellState.EMPTY || state == BoardCellState.ALIVE) {
-			return 'x';
-		} else {
 			return ' ';
+		} else {
+			return 'x';
 		}
 	}
 	
