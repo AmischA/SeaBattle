@@ -1,16 +1,15 @@
-package game;
+package board;
 
 import java.util.Arrays;
 
-enum BoardCellState {EMPTY, ALIVE, HIT, DESTROYED};
-
 public class GameBoard {
 
-	private final int boardWidth;
-	private final int boardHeight;
 	private static final int DAFAULT_BOARD_WIDTH = 10;
 	private static final int DEFAULT_BOARD_HEIGHT = 10; 
 	
+	private final int boardWidth;
+	private final int boardHeight;
+		
 	private BoardCellState[][] boardState = null;
 	
 	public GameBoard(int boardWidth, int boardHeight) {
@@ -31,6 +30,11 @@ public class GameBoard {
 			}
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return convertBoardToString();
+	}	
 	
 	private String convertBoardToString() {
 		StringBuilder board = new StringBuilder();
@@ -58,9 +62,4 @@ public class GameBoard {
 			return 'x';
 		}
 	}
-	
-	@Override
-	public String toString() {
-		return convertBoardToString();
-	}	
 }

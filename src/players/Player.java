@@ -1,5 +1,5 @@
 package players;
 
-public class User {
+public class Player {
 
 }
