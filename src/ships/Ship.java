@@ -1,4 +1,4 @@
-package Ships;
+package ships;
 
 import java.util.*;
 
@@ -18,6 +18,11 @@ public class Ship {
 	
 	public Ship(int numberOfDecks) {		
 		this.numberOfDecks = numberOfDecks;
+	}
+	
+	public Ship(int numberOfDecks, BoardCell ...decks) {		
+		this.numberOfDecks = numberOfDecks;
+		buildShip(decks);
 	}
 	
 	public int getNumberOfDecks() {

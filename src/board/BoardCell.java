@@ -1,16 +1,19 @@
 package board;
 
-enum BoardCellState {EMPTY, ADJACENT, ALIVE, HIT, DESTROYED};
-
 public class BoardCell implements Comparable {
+	public enum BoardCellState {EMPTY, ADJACENT, ALIVE, HIT, DESTROYED};
 	private Character rowCoordinate;
 	private Integer columnCoordinate;
 	private BoardCellState state;
 	
-	public BoardCell(char rowCoordinate, int columnCoordinate, BoardCellState state) {
+	public BoardCell(Character rowCoordinate, Integer columnCoordinate, BoardCellState state) {
 		this.rowCoordinate = rowCoordinate;
 		this.columnCoordinate = columnCoordinate;
 		this.state = state;
+	}
+	
+	public BoardCell(Character rowCoordinate, Integer columnCoordinate) {
+		this(rowCoordinate, columnCoordinate, BoardCellState.EMPTY);
 	}
 	
 	public void setState(BoardCellState state) {
