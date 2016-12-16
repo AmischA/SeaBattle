@@ -1,10 +1,10 @@
 package board;
 
-enum BoardCellState {EMPTY, ALIVE, HIT, DESTROYED};
+enum BoardCellState {EMPTY, ADJACENT, ALIVE, HIT, DESTROYED};
 
-public class BoardCell {
-	private char rowCoordinate;
-	private int columnCoordinate;
+public class BoardCell implements Comparable {
+	private Character rowCoordinate;
+	private Integer columnCoordinate;
 	private BoardCellState state;
 	
 	public BoardCell(char rowCoordinate, int columnCoordinate, BoardCellState state) {
@@ -21,17 +21,33 @@ public class BoardCell {
 		return state;
 	}
 	
-	public char getRowCoordinate() {
+	public Character getRowCoordinate() {
 		return rowCoordinate;
 	}
 	
-	public int getColumnCoordinate() {
+	public Integer getColumnCoordinate() {
 		return columnCoordinate;
 	}
 	
 	@Override
+	public int compareTo(Object otherBoardCell) {
+		BoardCell cellToCompare = (BoardCell) otherBoardCell;	
+			
+		int compareRowCoordinates = this.getRowCoordinate().compareTo(cellToCompare.getRowCoordinate());	
+		
+		if (compareRowCoordinates == 0) {
+			int compareColumnCoordinates = this.getColumnCoordinate().compareTo(cellToCompare.getColumnCoordinate());
+			return compareColumnCoordinates;
+		}
+		 	
+		return compareRowCoordinates;
+	}
+	
+	@Override
 	public boolean equals(Object otherBoardCell) {
+	
 		BoardCell cellToCompare = (BoardCell) otherBoardCell;
+		
  		if (this.getRowCoordinate() == cellToCompare.getRowCoordinate() &&
  				this.getColumnCoordinate() == cellToCompare.getColumnCoordinate()) {
  			return true;

@@ -1,23 +1,22 @@
 package Ships;
 
-import java.util.ArrayList;
+import java.util.*;
 
 import board.BoardCell;
 
-enum ShipState {ALIVE, DESTROYED};
-
 public class Ship {
-	private static final int ONE_DECK_SHIP = 4;
-	private static final int TWO_DECK_SHIP = 3;
-	private static final int THREE_DECK_SHIP = 2;
-	private static final int FOUR_DECK_SHIP = 1;
+	public enum ShipState {ALIVE, DESTROYED};
+
+	public static final int ONE_DECK_SHIP = 4;
+	public static final int TWO_DECK_SHIP = 3;
+	public static final int THREE_DECK_SHIP = 2;
+	public static final int FOUR_DECK_SHIP = 1;
 	
 	private final int numberOfDecks;
 	private ShipState state;							
 	private ArrayList<BoardCell> deckList;
 	
-	public Ship(int numberOfDecks) {
-		
+	public Ship(int numberOfDecks) {		
 		this.numberOfDecks = numberOfDecks;
 	}
 	
@@ -31,6 +30,10 @@ public class Ship {
 	
 	public ShipState getState() {
 		return state;
+	}
+	
+	public ArrayList<BoardCell> getDeckList() {
+		return new ArrayList<>(deckList);
 	}
 	
 	public void buildShip(BoardCell ...decks) {
