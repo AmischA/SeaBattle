@@ -8,7 +8,7 @@ public class RunConsoleGame {
 	}
 	
 	public void start() {
-		ConsoleGame game = new ConsoleGame();
+		ConsoleGame game = new ConsoleGame(10, 10);
 		game.startConsoleGame();
 	}
 }

@@ -7,7 +7,6 @@ package ships;
 import java.util.*;
 
 import board.BoardCell;
-import board.BoardCell.BoardCellState;
 
 abstract public class Ship {
 	public enum ShipState {ALIVE, DESTROYED};

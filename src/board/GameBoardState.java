@@ -3,6 +3,7 @@ package board;
 import java.util.*;
 
 import ships.Ship;
+import board.BoardCell.*;
 
 public class GameBoardState {
 	public enum BoardState {ACTIVE, FINISHED};
@@ -30,8 +31,23 @@ public class GameBoardState {
 		}
 	}
 	
-	public NavigableSet<BoardCell> getBoard() {
+	public NavigableSet<BoardCell> getCells() {
 		return new TreeSet<>(board);
+	}
+	
+	public List<BoardCell> getEmptyCells() {
+		List<BoardCell> result = new ArrayList<>();
+		for (BoardCell cell : getCells()) {
+			if (cell.getState() == BoardCellState.EMPTY) {
+				result.add(cell);
+			}
+		}
+		return result;
+	}
+	
+	// is the cell does not exists null is returned
+	public BoardCell.BoardCellState getCellState(BoardCell cellToTest) {
+		return findCell(cellToTest).getState();
 	}
 	
 	public void addShip(Ship newShip) {
@@ -39,8 +55,8 @@ public class GameBoardState {
 			shipList.add(newShip);
 			for (BoardCell deck : newShip.getDeckList()) {
 				BoardCell cellOnBoard = findCell(deck);
-				cellOnBoard.setState(BoardCell.BoardCellState.ALIVE);
-				setAdjacentCells(deck);
+				cellOnBoard.setState(BoardCellState.ALIVE);
+				setAdjacentCells(deck, BoardCellState.ADJACENT);
 			}
 		} else {
 			throw new IllegalStateException("Can't add a ship to the board");
@@ -61,13 +77,13 @@ public class GameBoardState {
 		if (!board.contains(deck)) {
 			return false;
 		}
-		if (board.ceiling(deck).getState() != BoardCell.BoardCellState.EMPTY) {
+		if (board.ceiling(deck).getState() != BoardCellState.EMPTY) {
 			return false;
 		}
 		return true;
 	}
 	
-	public void setAdjacentCells(BoardCell currentCell) {
+	private void setAdjacentCells(BoardCell currentCell, BoardCellState toWhatStateToSet) {
 		
 		BoardCell leftCell = currentCell.getLeftNeighbour();
 		BoardCell upperLeftCell = currentCell.getUpperLeftNeighbour();
@@ -82,19 +98,19 @@ public class GameBoardState {
 		Collections.addAll(listOfAdjacentCells, leftCell, upperLeftCell, lowerLeftCell, rightCell, upperRightCell,
 							lowerRightCell, upperCell, lowerCell);
 		
-		setCellsState(listOfAdjacentCells, BoardCell.BoardCellState.ADJACENT);
+		setCellsState(listOfAdjacentCells, toWhatStateToSet);
 	}
 	
-	private void setCellsState(Collection<BoardCell> inputCellList, BoardCell.BoardCellState toWhatStateToSet) {
+	private void setCellsState(Collection<BoardCell> inputCellList, BoardCellState toWhatStateToSet) {
 		for (BoardCell inputCell : inputCellList) {
 			BoardCell cellOnBoard = findCell(inputCell);
-			if (cellOnBoard != null && cellOnBoard.getState() == BoardCell.BoardCellState.EMPTY) {
+			if (cellOnBoard != null && cellOnBoard.getState() == BoardCellState.EMPTY) {
 				cellOnBoard.setState(toWhatStateToSet);
 			}
 		}
 	}
 	
-	private BoardCell findCell(BoardCell cellToFind) {
+	public BoardCell findCell(BoardCell cellToFind) {
 		for (BoardCell currentCell : board) {
 			if (currentCell.equalsWithoutState(cellToFind)) {
 				return currentCell;
