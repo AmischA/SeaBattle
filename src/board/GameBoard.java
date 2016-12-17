@@ -1,6 +1,8 @@
 package board;
 
-import java.util.Arrays;
+import java.util.*;
+
+import ships.Ship;
 
 public class GameBoard {
 
@@ -15,52 +17,51 @@ public class GameBoard {
 	public GameBoard(int boardWidth, int boardHeight) {
 		this.boardWidth = boardWidth;
 		this.boardHeight = boardHeight;
-		//gameState = new GameBoardState();
-//		boardState = new BoardCellState[boardWidth][boardHeight];
-//		fillBoard(BoardCellState.EMPTY);
+		gameState = new GameBoardState(boardWidth, boardHeight);
 	}
 	
 	public GameBoard() {
 		this(DAFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
 	}
 	
-//	private void fillBoard(BoardCellState state) {
-//		for (int boardRow = 0; boardRow < boardHeight; boardRow++) {
-//			for (int boardColumn = 0; boardColumn < boardWidth; boardColumn++) {
-//				boardState[boardRow][boardColumn] = state;
-//			}
-//		}
-//	}
+	public void addShipToBoard(Ship shipToAdd) {
+		gameState.addShip(shipToAdd);
+	}
 	
-//	@Override
-//	public String toString() {
-//		return convertBoardToString();
-//	}	
-//	
-//	private String convertBoardToString() {
-//		StringBuilder board = new StringBuilder();
-//		board.append("  ");
-//		for (int i = 0; i < boardWidth; i++) {
-//			board.append(i + " ");
-//		}
-//		board.append("\n");
-//		
-//		for (int boardRow = 0; boardRow < boardHeight; boardRow++) {
-//			board.append((char) (boardRow + 'A') + " ");
-//			for (int boardColumn = 0; boardColumn < boardWidth; boardColumn++) {
-//				board.append(getCharacterBasedOnState(boardState[boardRow][boardColumn]) + " ");
-//			}
-//			board.append("\n");
-//		}	
-//				
-//		return board.toString();
-//	}
+	@Override
+	public String toString() {
+		return convertBoardToString();
+	}	
+
+	private String convertBoardToString() {
+		StringBuilder stringBoard = new StringBuilder();
+		stringBoard.append("  ");
+		for (int i = 0; i < boardWidth; i++) {
+			stringBoard.append(i + " ");
+		}
+		stringBoard.append("\n");
+		
+		NavigableSet<BoardCell> gameBoard = gameState.getBoard();
+		for (int row = 0; row < boardHeight; row++) {
+			stringBoard.append((char) (row + 'A') + " ");
+			for (int column = 0; column < boardWidth; column++) {
+				stringBoard.append(getCharacterBasedOnState(gameBoard.pollFirst().getState()) + " ");
+			}
+			stringBoard.append("\n");
+		}	
+				
+		return stringBoard.toString();
+	}
 	
-//	private char getCharacterBasedOnState(BoardCellState state) {
-//		if (state == BoardCellState.EMPTY || state == BoardCellState.ALIVE) {
-//			return ' ';
-//		} else {
-//			return 'x';
-//		}
-//	}
+	private char getCharacterBasedOnState(BoardCell.BoardCellState state) {
+		if (state == BoardCell.BoardCellState.HIT || state == BoardCell.BoardCellState.DESTROYED) {
+			return 'x';
+		} else if (state == BoardCell.BoardCellState.ALIVE) {
+			return '#';
+		} else if (state == BoardCell.BoardCellState.ADJACENT) {
+			return 'o';
+		} else {
+			return ' ';
+		}
+	}
 }

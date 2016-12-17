@@ -1,13 +1,13 @@
 package board;
 
-public class BoardCell implements Comparable {
+public class BoardCell implements Comparable<BoardCell> {
 	public enum BoardCellState {EMPTY, ADJACENT, ALIVE, HIT, DESTROYED};
 	private Character rowCoordinate;
 	private Integer columnCoordinate;
 	private BoardCellState state;
 	
 	public BoardCell(Character rowCoordinate, Integer columnCoordinate, BoardCellState state) {
-		this.rowCoordinate = rowCoordinate;
+		this.rowCoordinate = Character.toUpperCase(rowCoordinate);
 		this.columnCoordinate = columnCoordinate;
 		this.state = state;
 	}
@@ -33,9 +33,7 @@ public class BoardCell implements Comparable {
 	}
 	
 	@Override
-	public int compareTo(Object otherBoardCell) {
-		BoardCell cellToCompare = (BoardCell) otherBoardCell;	
-			
+	public int compareTo(BoardCell cellToCompare) {
 		int compareRowCoordinates = this.getRowCoordinate().compareTo(cellToCompare.getRowCoordinate());	
 		
 		if (compareRowCoordinates == 0) {
@@ -48,9 +46,15 @@ public class BoardCell implements Comparable {
 	
 	@Override
 	public boolean equals(Object otherBoardCell) {
-	
 		BoardCell cellToCompare = (BoardCell) otherBoardCell;
-		
+		if (equalsWithoutState(cellToCompare)) {
+			return this.getState() == cellToCompare.getState();
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean equalsWithoutState(BoardCell cellToCompare) {
  		if (this.getRowCoordinate() == cellToCompare.getRowCoordinate() &&
  				this.getColumnCoordinate() == cellToCompare.getColumnCoordinate()) {
  			return true;

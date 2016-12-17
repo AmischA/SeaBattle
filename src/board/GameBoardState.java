@@ -17,6 +17,8 @@ public class GameBoardState {
 		this.boardWidth = boardWidth;
 		this.boardHeight = boardHeight;
 		this.state = BoardState.ACTIVE;
+		board = new TreeSet<>();
+		shipList = new ArrayList<>();
 		fillBoardWithEmptyCells();
 	}
 	
@@ -28,10 +30,17 @@ public class GameBoardState {
 		}
 	}
 	
+	public NavigableSet<BoardCell> getBoard() {
+		return new TreeSet<>(board);
+	}
+	
 	public void addShip(Ship newShip) {
-		if (canAddShip(newShip)) {
+		if (state == BoardState.ACTIVE && canAddShip(newShip)) {
 			shipList.add(newShip);
-			board.addAll(newShip.getDeckList());
+			for (BoardCell deck : newShip.getDeckList()) {
+				findCell(deck).setState(BoardCell.BoardCellState.ALIVE);
+				setAdjacentCells(deck);
+			}
 		} else {
 			throw new IllegalStateException("Can't add a ship to the board");
 		}
@@ -57,13 +66,38 @@ public class GameBoardState {
 		return true;
 	}
 	
-	public void setBoardCell(BoardCell.BoardCellState state) {
+	public void setAdjacentCells(BoardCell centralCell) {
+		char centralRowCoordinate = centralCell.getRowCoordinate();
+		int centralColumnCoordinate = centralCell.getColumnCoordinate();
 		
+		BoardCell leftCell = new BoardCell(centralRowCoordinate, centralColumnCoordinate - 1);
+		BoardCell upperLeftCell = new BoardCell((char) (centralRowCoordinate - 1), centralColumnCoordinate - 1);
+		BoardCell lowerLeftCell = new BoardCell((char) (centralRowCoordinate + 1), centralColumnCoordinate - 1);
+		BoardCell rightCell = new BoardCell(centralRowCoordinate, centralColumnCoordinate + 1);	
+		BoardCell upperRightCell = new BoardCell((char) (centralRowCoordinate - 1), centralColumnCoordinate + 1);
+		BoardCell lowerRightCell = new BoardCell((char) (centralRowCoordinate + 1), centralColumnCoordinate + 1);
+		BoardCell upperCell = new BoardCell((char) (centralRowCoordinate - 1), centralColumnCoordinate);
+		BoardCell lowerCell = new BoardCell((char) (centralRowCoordinate + 1), centralColumnCoordinate);
+		
+		ArrayList<BoardCell> listOfAdjacentCells = new ArrayList<>();
+		Collections.addAll(listOfAdjacentCells, leftCell, upperLeftCell, lowerLeftCell, rightCell, upperRightCell,
+							lowerRightCell, upperCell, lowerCell);
+		
+		setCellsState(listOfAdjacentCells, BoardCell.BoardCellState.ADJACENT);
+	}
+	
+	private void setCellsState(Collection<BoardCell> inputCellList, BoardCell.BoardCellState toWhatStateToSet) {
+		for (BoardCell inputCell : inputCellList) {
+			BoardCell cellOnBoard = findCell(inputCell);
+			if (cellOnBoard != null && cellOnBoard.getState() == BoardCell.BoardCellState.EMPTY) {
+				cellOnBoard.setState(toWhatStateToSet);
+			}
+		}
 	}
 	
 	private BoardCell findCell(BoardCell cellToFind) {
 		for (BoardCell currentCell : board) {
-			if (currentCell.equals(cellToFind)) {
+			if (currentCell.equalsWithoutState(cellToFind)) {
 				return currentCell;
 			}
 		}
