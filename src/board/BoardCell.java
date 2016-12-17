@@ -1,14 +1,17 @@
+/*
+ *Single board cell on the game board
+ */
+
 package board;
 
 public class BoardCell implements Comparable<BoardCell> {
-	public enum BoardCellState {EMPTY, ADJACENT, ALIVE, HIT, DESTROYED};
-	private Character rowCoordinate;
-	private Integer columnCoordinate;
+	public enum BoardCellState {EMPTY, ADJACENT, ALIVE, HIT, DESTROYED, MISSED};
+	
+	private Coordinates coordinates;
 	private BoardCellState state;
 	
 	public BoardCell(Character rowCoordinate, Integer columnCoordinate, BoardCellState state) {
-		this.rowCoordinate = Character.toUpperCase(rowCoordinate);
-		this.columnCoordinate = columnCoordinate;
+		coordinates = new Coordinates(Character.toUpperCase(rowCoordinate), columnCoordinate);
 		this.state = state;
 	}
 	
@@ -24,12 +27,48 @@ public class BoardCell implements Comparable<BoardCell> {
 		return state;
 	}
 	
+	public Coordinates getCoordinates() {
+		return coordinates;
+	}
+	
 	public Character getRowCoordinate() {
-		return rowCoordinate;
+		return coordinates.getRowCoordinate();
 	}
 	
 	public Integer getColumnCoordinate() {
-		return columnCoordinate;
+		return coordinates.getColumnCoordinate();
+	}
+	
+	public BoardCell getLeftNeighbour() {
+		return new BoardCell(getRowCoordinate(), getColumnCoordinate() - 1);
+	}
+	
+	public BoardCell getUpperLeftNeighbour() {
+		return new BoardCell((char) (getRowCoordinate() - 1), getColumnCoordinate() - 1);
+	}
+	
+	public BoardCell getLowerLeftNeighbour() {
+		return new BoardCell((char) (getRowCoordinate() + 1), getColumnCoordinate() - 1);
+	}
+	
+	public BoardCell getRightNeighbour() {
+		return new BoardCell(getRowCoordinate(), getColumnCoordinate() + 1);
+	}
+	
+	public BoardCell getUpperRightNeighbour() {
+		return new BoardCell((char) (getRowCoordinate() - 1), getColumnCoordinate() + 1);
+	}
+	
+	public BoardCell getLowerRightNeighbour() {
+		return new BoardCell((char) (getRowCoordinate() + 1), getColumnCoordinate() + 1);
+	}
+	
+	public BoardCell getUpperNeighbour() {
+		return new BoardCell((char) (getRowCoordinate() - 1), getColumnCoordinate());
+	}
+	
+	public BoardCell getLowerNeighbour() {
+		return new BoardCell((char) (getRowCoordinate() + 1), getColumnCoordinate());
 	}
 	
 	@Override
@@ -55,8 +94,7 @@ public class BoardCell implements Comparable<BoardCell> {
 	}
 	
 	public boolean equalsWithoutState(BoardCell cellToCompare) {
- 		if (this.getRowCoordinate() == cellToCompare.getRowCoordinate() &&
- 				this.getColumnCoordinate() == cellToCompare.getColumnCoordinate()) {
+ 		if (this.getCoordinates().equals(cellToCompare.getCoordinates())) {
  			return true;
  		} else {
  			return false;

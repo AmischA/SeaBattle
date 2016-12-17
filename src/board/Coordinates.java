@@ -5,28 +5,39 @@
 
 package board;
 
-public class Coordinates<R extends Number, C> {
-	private R rowCoordinate;
-	private C columnCoordinate;
+public class Coordinates {
+	private Character rowCoordinate;
+	private Integer columnCoordinate;
 	
-	public Coordinates(R rowCoordinate, C columnCoordinate) {
+	public Coordinates(Character rowCoordinate, Integer columnCoordinate) {
 		this.rowCoordinate = rowCoordinate;
 		this.columnCoordinate = columnCoordinate;		
 	}
 
-	public R getRowCoordinate() {
+	public Character getRowCoordinate() {
 		return rowCoordinate;
 	}
 
-	public void setRowCoordinate(R rowCoordinate) {
+	public void setRowCoordinate(Character rowCoordinate) {
 		this.rowCoordinate = rowCoordinate;
 	}
 
-	public C getColumnCoordinate() {
+	public Integer getColumnCoordinate() {
 		return columnCoordinate;
 	}
 
-	public void setColumnCoordinate(C columnCoordinate) {
+	public void setColumnCoordinate(Integer columnCoordinate) {
 		this.columnCoordinate = columnCoordinate;
+	}
+	
+	@Override
+	public boolean equals(Object otherObject) {
+		Coordinates coordinatesToCompare = (Coordinates) otherObject;
+		if (this.getRowCoordinate() == coordinatesToCompare.getRowCoordinate() &&
+				this.getColumnCoordinate() == coordinatesToCompare.getColumnCoordinate()) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

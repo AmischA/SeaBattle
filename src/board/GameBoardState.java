@@ -38,7 +38,8 @@ public class GameBoardState {
 		if (state == BoardState.ACTIVE && canAddShip(newShip)) {
 			shipList.add(newShip);
 			for (BoardCell deck : newShip.getDeckList()) {
-				findCell(deck).setState(BoardCell.BoardCellState.ALIVE);
+				BoardCell cellOnBoard = findCell(deck);
+				cellOnBoard.setState(BoardCell.BoardCellState.ALIVE);
 				setAdjacentCells(deck);
 			}
 		} else {
@@ -66,18 +67,16 @@ public class GameBoardState {
 		return true;
 	}
 	
-	public void setAdjacentCells(BoardCell centralCell) {
-		char centralRowCoordinate = centralCell.getRowCoordinate();
-		int centralColumnCoordinate = centralCell.getColumnCoordinate();
+	public void setAdjacentCells(BoardCell currentCell) {
 		
-		BoardCell leftCell = new BoardCell(centralRowCoordinate, centralColumnCoordinate - 1);
-		BoardCell upperLeftCell = new BoardCell((char) (centralRowCoordinate - 1), centralColumnCoordinate - 1);
-		BoardCell lowerLeftCell = new BoardCell((char) (centralRowCoordinate + 1), centralColumnCoordinate - 1);
-		BoardCell rightCell = new BoardCell(centralRowCoordinate, centralColumnCoordinate + 1);	
-		BoardCell upperRightCell = new BoardCell((char) (centralRowCoordinate - 1), centralColumnCoordinate + 1);
-		BoardCell lowerRightCell = new BoardCell((char) (centralRowCoordinate + 1), centralColumnCoordinate + 1);
-		BoardCell upperCell = new BoardCell((char) (centralRowCoordinate - 1), centralColumnCoordinate);
-		BoardCell lowerCell = new BoardCell((char) (centralRowCoordinate + 1), centralColumnCoordinate);
+		BoardCell leftCell = currentCell.getLeftNeighbour();
+		BoardCell upperLeftCell = currentCell.getUpperLeftNeighbour();
+		BoardCell lowerLeftCell = currentCell.getLowerLeftNeighbour();
+		BoardCell rightCell = currentCell.getRightNeighbour();	
+		BoardCell upperRightCell = currentCell.getUpperRightNeighbour();
+		BoardCell lowerRightCell = currentCell.getLowerRightNeighbour();
+		BoardCell upperCell = currentCell.getUpperNeighbour();
+		BoardCell lowerCell = currentCell.getLowerNeighbour();
 		
 		ArrayList<BoardCell> listOfAdjacentCells = new ArrayList<>();
 		Collections.addAll(listOfAdjacentCells, leftCell, upperLeftCell, lowerLeftCell, rightCell, upperRightCell,

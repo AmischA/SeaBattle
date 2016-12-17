@@ -1,3 +1,7 @@
+/*
+ *This class represents an abstract ship and encapsulates all needed behaviour 
+ */
+
 package ships;
 
 import java.util.*;
@@ -10,7 +14,7 @@ abstract public class Ship {
 	
 	private final int numberOfDecks;
 	private ShipState state;							
-	private ArrayList<BoardCell> deckList;
+	private SortedSet<BoardCell> deckList;
 	
 	public Ship(int numberOfDecks, BoardCell ...decks) {	
 		if (numberOfDecks < 1) {
@@ -22,7 +26,8 @@ abstract public class Ship {
 		
 		this.numberOfDecks = numberOfDecks;
 		state = ShipState.ALIVE;
-		deckList = new ArrayList<>();
+		deckList = new TreeSet<>();
+		Arrays.sort(decks);
 		buildShip(decks);
 	}
 	
@@ -39,7 +44,10 @@ abstract public class Ship {
 	private void addDeck(BoardCell deckToAdd) {
 		if (canAddDeck(deckToAdd)) {
 			deckList.add(deckToAdd);
+		} else {
+			throw new IllegalArgumentException("Can't build a ship from given coordinates");
 		}
+		
 		if (deckList.size() > numberOfDecks) {
 			throw new IllegalStateException("Ship can't have more than " + getNumberOfDecks()
 												+ " decks");
@@ -47,40 +55,38 @@ abstract public class Ship {
 	}
 	
 	private boolean canAddDeck(BoardCell deckToAdd) {
-		Character deckToAddRowCoordinate = deckToAdd.getRowCoordinate();
-		Integer deckToAddColumnCoordinate = deckToAdd.getColumnCoordinate();
 		if (deckList.size() == 0) {
 			return true;
-		} else if (deckList.size() == 1) {
-			char directionOne = deckList.get(0).getRowCoordinate();
-			int directionTwo = deckList.get(0).getColumnCoordinate();
-			if (deckToAddRowCoordinate == directionOne  && deckToAddColumnCoordinate == directionTwo|| deckToAdd.getColumnCoordinate() == directionTwo) {
-				return true;
-			}
-		} else if (deckList.size() > 1) {
-			if (deckList.get(0).getRowCoordinate() == deckList.get(1).getRowCoordinate()) {
-				if ((deckList.get(0).getColumnCoordinate() == deckToAdd.getColumnCoordinate()) 
-						&& deckList.get(deckList.size()).getRowCoordinate() == deckToAdd.getRowCoordinate()) {
-					return true;
-				}
-			} else if (deckList.get(0).getColumnCoordinate() == deckList.get(1).getColumnCoordinate()) {
-				if (deckList.get(0).getColumnCoordinate() == deckToAdd.getColumnCoordinate()
-						&& deckList.get(deckList.size()).getRowCoordinate() == deckToAdd.getRowCoordinate()) {
+		} else if (deckList.size() > 0) {
+			for (BoardCell cellOnBoard : generatePositionsToAddDeck(deckList)) {
+				if (deckToAdd.equals(cellOnBoard)) {
 					return true;
 				}
 			}
-	
+			return false;	
+		} else {
+			return false;
 		}
-		throw new IllegalArgumentException("Can't build a ship from given coordinates");
 	}
 	
-//	private ArrayList<BoardCell> generatePossitionsToAddDeck() {
-//		if (deckList.size() == 1) {
-//			Character rowCoordinate = deckList.get(0).getRowCoordinate();
-//			Integer columnCoordinate = deckList.get(0).getColumnCoordinate();
-//			
-//		}
-//	}
+	// generate all positions on the board where a new ship's deck can be added based on current ship's decks
+	private Collection<BoardCell> generatePositionsToAddDeck(SortedSet<BoardCell> currentDeckList) {	
+		Collection<BoardCell> generatedPositions = new TreeSet<BoardCell>();		
+		if (currentDeckList.size() == 1) {
+			BoardCell singleDeck = currentDeckList.first();					
+			Collections.addAll(generatedPositions, singleDeck.getLeftNeighbour(), singleDeck.getRightNeighbour(),
+								singleDeck.getUpperNeighbour(), singleDeck.getLowerNeighbour());												
+		} else if (currentDeckList.size() > 1) {
+			BoardCell firstDeck = currentDeckList.first();
+			BoardCell lastDeck = currentDeckList.last();						
+			if (firstDeck.getRowCoordinate() == lastDeck.getRowCoordinate()) {
+				Collections.addAll(generatedPositions, firstDeck.getLeftNeighbour(), lastDeck.getRightNeighbour());
+			} else if (firstDeck.getColumnCoordinate() == lastDeck.getColumnCoordinate()) {
+				Collections.addAll(generatedPositions, firstDeck.getUpperNeighbour(), lastDeck.getLowerNeighbour());
+			}
+		}
+		return generatedPositions;
+	}
 	
 	public int getNumberOfDecks() {
 		return numberOfDecks;
