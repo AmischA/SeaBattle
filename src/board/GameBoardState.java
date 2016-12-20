@@ -56,7 +56,8 @@ public class GameBoardState {
 			for (BoardCell deck : newShip.getDeckList()) {
 				BoardCell cellOnBoard = findCell(deck);
 				cellOnBoard.setState(BoardCellState.ALIVE);
-				setAdjacentCells(deck, BoardCellState.ADJACENT);
+				deck.setState(BoardCellState.ALIVE);
+				setAdjacentCells(deck);
 			}
 		} else {
 			throw new IllegalStateException("Can't add a ship to the board");
@@ -74,16 +75,14 @@ public class GameBoardState {
 	}
 	
 	private boolean canAddDeck(BoardCell deck) {
-		if (!board.contains(deck)) {
-			return false;
-		}
-		if (board.ceiling(deck).getState() != BoardCellState.EMPTY) {
+		BoardCell cellOnBoard = findCell(deck);
+		if (cellOnBoard == null || cellOnBoard.getState() != BoardCellState.EMPTY) {
 			return false;
 		}
 		return true;
 	}
 	
-	private void setAdjacentCells(BoardCell currentCell, BoardCellState toWhatStateToSet) {
+	public void setAdjacentCells(BoardCell currentCell) {
 		
 		BoardCell leftCell = currentCell.getLeftNeighbour();
 		BoardCell upperLeftCell = currentCell.getUpperLeftNeighbour();
@@ -98,14 +97,14 @@ public class GameBoardState {
 		Collections.addAll(listOfAdjacentCells, leftCell, upperLeftCell, lowerLeftCell, rightCell, upperRightCell,
 							lowerRightCell, upperCell, lowerCell);
 		
-		setCellsState(listOfAdjacentCells, toWhatStateToSet);
+		setCellsState(listOfAdjacentCells);
 	}
 	
-	private void setCellsState(Collection<BoardCell> inputCellList, BoardCellState toWhatStateToSet) {
+	private void setCellsState(Collection<BoardCell> inputCellList) {
 		for (BoardCell inputCell : inputCellList) {
 			BoardCell cellOnBoard = findCell(inputCell);
 			if (cellOnBoard != null && cellOnBoard.getState() == BoardCellState.EMPTY) {
-				cellOnBoard.setState(toWhatStateToSet);
+				cellOnBoard.setState(BoardCellState.ADJACENT);
 			}
 		}
 	}
@@ -114,6 +113,17 @@ public class GameBoardState {
 		for (BoardCell currentCell : board) {
 			if (currentCell.equalsWithoutState(cellToFind)) {
 				return currentCell;
+			}
+		}
+		return null;
+	}
+	
+	public Ship findShipByCell(BoardCell cell) {
+		for (Ship currentShip : shipList) {
+			for (BoardCell currentDeck : currentShip.getDeckList()) {
+				if (cell.equalsWithoutState(currentDeck)) {
+					return currentShip;
+				}
 			}
 		}
 		return null;

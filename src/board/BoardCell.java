@@ -5,7 +5,7 @@
 package board;
 
 public class BoardCell implements Comparable<BoardCell> {
-	public enum BoardCellState {EMPTY, ADJACENT, ALIVE, HIT, DESTROYED, MISSED};
+	public enum BoardCellState {EMPTY, ADJACENT, ALIVE, HIT, MISSED};
 	
 	private Coordinates coordinates;
 	private BoardCellState state;
@@ -69,6 +69,11 @@ public class BoardCell implements Comparable<BoardCell> {
 	
 	public BoardCell getLowerNeighbour() {
 		return new BoardCell((char) (getRowCoordinate() + 1), getColumnCoordinate());
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + getRowCoordinate() + ", " + getColumnCoordinate() + ", " + getState() + ")";
 	}
 	
 	@Override

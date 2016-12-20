@@ -7,7 +7,7 @@ import board.BoardCell.BoardCellState;
 import ships.*;
 
 public class GameBoard {
-	private enum BuildingDirection {UP, RIGHT, DOWN, LEFT};
+	public enum FireResult {MISSED, HIT, DESTROYED, FIRED_BEFORE};
 
 	private final int boardWidth;
 	private final int boardHeight;
@@ -24,8 +24,35 @@ public class GameBoard {
 		gameState.addShip(shipToAdd);
 	}
 	
-	public void fire(BoardCell cell) {
-		
+	public FireResult fire(BoardCell cell) {
+		BoardCell targetCell = gameState.findCell(cell);
+		if (targetCell == null) {
+			throw new IllegalArgumentException("There's no such cell on the board with coordinates " + 
+												cell.getCoordinates());
+		}
+		FireResult result = getFireResult(targetCell.getState());
+		switch(result) {
+			case MISSED: targetCell.setState(BoardCellState.MISSED);
+						 break;
+			case HIT:	 targetCell.setState(BoardCellState.HIT);
+						 Ship hitShip = gameState.findShipByCell(targetCell);
+						 hitShip.setDeckState(targetCell, BoardCellState.HIT);
+						 if (!hitShip.isAlive()) {
+							 result = FireResult.DESTROYED;
+						 }
+						 break;
+		}
+		return result;
+	}
+	
+	private FireResult getFireResult(BoardCellState currentCellState) {
+		if (currentCellState == BoardCellState.HIT || currentCellState == BoardCellState.MISSED) {
+			return FireResult.FIRED_BEFORE;
+		} else if (currentCellState == BoardCellState.EMPTY || currentCellState == BoardCellState.ADJACENT) {
+			return FireResult.MISSED;
+		} else {
+			return FireResult.HIT;
+		}
 	}
 	
 	public BoardCellState getCellState(BoardCell cell) {
@@ -33,101 +60,40 @@ public class GameBoard {
 	}
 
 	public void autoGenerateShipFleet() {
-//		for (int i = 0; i < FourDeckShip.MAXIMUM_NUMBER_OF_SHIPS; i++) {
-//			Ship fourDeckShip = FourDeckShip.buildShip(generateShipDecks(FourDeckShip.NUMBER_OF_DECKS));
-//			addShipToBoard(fourDeckShip);
-//		}
-//		for (int i = 0; i < ThreeDeckShip.MAXIMUM_NUMBER_OF_SHIPS; i++) {
-//			
-//		}
-//		for (int i = 0; i < TwoDeckShip.MAXIMUM_NUMBER_OF_SHIPS; i++) {
-//			
-//		}
-//		for (int i = 0; i < OneDeckShip.MAXIMUM_NUMBER_OF_SHIPS; i++) {
-//			
-//		}
-		Collection<Ship> generatedShips = generateShipsByClass(FourDeckShip.class, 1);
-		for (Ship ship : generatedShips) {
-			addShipToBoard(ship);
-		}
-//		Ship fourDeckShip = FourDeckShip.buildShip(generateShipDecks(FourDeckShip.NUMBER_OF_DECKS));
-//		addShipToBoard(fourDeckShip);
+		autoGenerateSpecificDeckShips(FourDeckShip.class);
+		autoGenerateSpecificDeckShips(ThreeDeckShip.class);
+		autoGenerateSpecificDeckShips(TwoDeckShip.class);
+		autoGenerateSpecificDeckShips(OneDeckShip.class);
 	}
 	
-	private Collection<Ship> generateShipsByClass(Class<? extends Ship> shipClass, int numberOfShips) {
-		Collection<Ship> generatedShips = new HashSet<>();
-		for (int i = 0; i < numberOfShips; i++) {
-			generatedShips.add(createShipByClass(shipClass));
-		}
-		if (generatedShips.size() == 0) {
-			throw new RuntimeException("Can't generate " + numberOfShips + " ships by class type " + shipClass);
-		}
-		return generatedShips;
-	}
-	
-	private Ship createShipByClass(Class<? extends Ship> shipClass) {
+	private void autoGenerateSpecificDeckShips(Class<? extends Ship> shipClass) {
 		try {
-			Method shipFactoryMethod = shipClass.getMethod("buildShip", Collection.class);
-			Field fieldNumberOfDecks = shipClass.getField("NUMBER_OF_DECKS");
-			Collection<BoardCell> shipDecks = generateShipDecks(fieldNumberOfDecks.getInt(int.class));
-			Ship newShip = (Ship) shipFactoryMethod.invoke(Collection.class, shipDecks);
-			return newShip;
-		} catch (Exception e) {
-			RuntimeException exception = new RuntimeException("Can't create a ship by class type " + shipClass);
+			Field maximumNumberOfShipsField = shipClass.getField("MAXIMUM_NUMBER_OF_SHIPS");
+			int maximumNumberOfShips = maximumNumberOfShipsField.getInt(Integer.class);
+			for (int i = 0; i < maximumNumberOfShips; i++) {
+				addShipToBoard(createShipByClass(shipClass));
+			}
+		}
+		catch(Exception e) {
+			RuntimeException exception = new RuntimeException("Can't get a field \"MAXIMUM_NUMBER_OF_SHIPS\"" +
+																" of class " + shipClass.getName());
 			exception.initCause(e);
 			throw exception;
 		}
 	}
 	
-	/*
-	 * randomly generates a sequential number of decks for a ship, iterating through a list of available 
-	 * empty board cells 
-	 */
-	private Collection<BoardCell> generateShipDecks(int howManyDecks) {
-		Random randomNumberGenerator = new Random();
-		List<BoardCell> listOfEmptyCells = gameState.getEmptyCells();
-		Collections.shuffle(listOfEmptyCells);
-		
-		for (BoardCell cell : listOfEmptyCells) {
-			List<BuildingDirection> directions = new ArrayList<>(Arrays.asList(BuildingDirection.values()));
-			while(!directions.isEmpty()) {
-				BuildingDirection currentDirection = directions.remove(randomNumberGenerator.nextInt(directions.size()));
-				Collection<BoardCell> newShip = tryToBuildShip(cell, howManyDecks, currentDirection);
-				if (newShip != null) {
-					return newShip;
-				}
-			}
+	private Ship createShipByClass(Class<? extends Ship> shipClass) {
+		try {
+			Method shipFactoryMethod = shipClass.getMethod("buildShip", GameBoardState.class);
+			Ship newShip = (Ship) shipFactoryMethod.invoke(null, gameState);
+			return newShip;
+		} catch (Exception e) {
+			RuntimeException exception = new RuntimeException("Can't create a ship by class type " + shipClass.getName());
+			exception.initCause(e);
+			throw exception;
 		}
-		throw new IllegalStateException("Can't find a place on the board to build a ship with so many decks");
 	}
 	
-	/*
-	 * tries to build a ship if it's possible for the current board starting from known cell 
-	 * with given number of decks and building direction (UP, DOWN, LEFT or RIGHT).
-	 * returns null if can't build a ship  
-	 */
-	private Collection<BoardCell> tryToBuildShip(BoardCell currentCell, int howManyDecks, BuildingDirection direction) {
-		Collection<BoardCell> result = new HashSet<>();
-		for (int i = 0; i < howManyDecks; i++) {
-			BoardCell neighbourCell = gameState.findCell(nextNeighbour(currentCell, direction));			
-			if (neighbourCell != null && neighbourCell.getState() == BoardCellState.EMPTY) {
-				result.add(neighbourCell);
-				currentCell = neighbourCell;
-			} else {
-				return null;
-			}
-		}
-		return result;
-	}
-	
-	private BoardCell nextNeighbour(BoardCell cell, BuildingDirection direction) {
-		switch(direction) {
-			case UP: return cell.getUpperNeighbour();
-			case RIGHT: return cell.getRightNeighbour();
-			case DOWN: return cell.getLowerNeighbour();
-			default: return cell.getLeftNeighbour();
-		}
-	}
 	
 	@Override
 	public String toString() {
@@ -155,12 +121,12 @@ public class GameBoard {
 	}
 	
 	private char getCharacterBasedOnState(BoardCell.BoardCellState state) {
-		if (state == BoardCellState.HIT || state == BoardCellState.DESTROYED) {
+		if (state == BoardCellState.HIT) {
 			return 'x';
 		} else if (state == BoardCellState.ALIVE) {
 			return '#';
 		} else if (state == BoardCellState.ADJACENT) {
-			return 'o';
+			return ' ';
 		} else {
 			return ' ';
 		}

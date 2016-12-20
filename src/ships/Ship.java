@@ -6,35 +6,33 @@ package ships;
 
 import java.util.*;
 
-import board.BoardCell;
+import board.*;
+import board.BoardCell.BoardCellState;
 
 abstract public class Ship {
-	public enum ShipState {ALIVE, DESTROYED};
+	public enum BuildingDirection {UP, RIGHT, DOWN, LEFT};
 	
-	private final int numberOfDecks;
-	private ShipState state;							
+	private final int numberOfDecks;					
 	private SortedSet<BoardCell> deckList;
 	
-	public Ship(int numberOfDecks, BoardCell ...decks) {	
-		if (numberOfDecks < 1) {
+	public Ship(BoardCell ...decks) {	
+		if (decks.length < 1) {
 			throw new IllegalArgumentException("Ship can't have a number of decks fewer than 1");
-		}
-		if (numberOfDecks != decks.length) {
-			throw new IllegalArgumentException("Number of decks doesn't match");
-		}
-		
-		this.numberOfDecks = numberOfDecks;
-		state = ShipState.ALIVE;
+		}	
+		this.numberOfDecks = decks.length;
 		deckList = new TreeSet<>();
-		Arrays.sort(decks);
 		buildShip(decks);
 	}
 	
-	public Ship(BoardCell ...decks) {
-		this(decks.length, decks);
+	public Ship(Collection<BoardCell> board, int numberOfDecks) {
+		this.numberOfDecks = numberOfDecks;
+		deckList = new TreeSet<>();
+		Collection<BoardCell> shipDecks = new ArrayList<>(generateShipDecks(board, numberOfDecks));
+		buildShip(shipDecks.toArray(new BoardCell[0]));	
 	}
 	
-	private void buildShip(BoardCell ...decks) {
+	private void buildShip(BoardCell ...decks) {		
+		Arrays.sort(decks);
 		for (BoardCell newDeck : decks) {
 			addDeck(newDeck);
 		}
@@ -87,19 +85,93 @@ abstract public class Ship {
 		return generatedPositions;
 	}
 	
+	
+	/*
+	 * randomly generates a sequential number of decks for a ship, iterating through a list of available 
+	 * empty board cells 
+	 */
+	private Collection<BoardCell> generateShipDecks(Collection<BoardCell> inputListOfCells, int howManyDecks) {
+		Random randomNumberGenerator = new Random();
+		List<BoardCell> board = new ArrayList<>(inputListOfCells);
+		Collections.shuffle(board);
+		
+		for (BoardCell cell : board) {
+			if (cell.getState() != BoardCellState.EMPTY) {
+				continue;
+			}
+			List<BuildingDirection> directions = new ArrayList<>(Arrays.asList(BuildingDirection.values()));
+			while(!directions.isEmpty()) {
+				BuildingDirection currentDirection = directions.remove(randomNumberGenerator.nextInt(directions.size()));
+				Collection<BoardCell> shipDecks = tryToBuildShip(board, cell, howManyDecks, currentDirection);
+				if (shipDecks != null) {
+					return shipDecks;
+				}
+			}
+		}
+		throw new IllegalStateException("Can't find a place on the board to build a ship with so many decks");
+	}
+	
+	/*
+	 * tries to build a ship if it's possible for the current board starting from known cell 
+	 * with given number of decks and building direction (UP, DOWN, LEFT or RIGHT).
+	 * Returns a collection of decks if can build a ship.
+	 * Returns null if can't build a ship  
+	 */
+	private Collection<BoardCell> tryToBuildShip(List<BoardCell> board, BoardCell currentCell, 
+													int howManyDecks, BuildingDirection direction) {
+		Collection<BoardCell> result = new HashSet<>();
+		for (int i = 0; i < howManyDecks; i++) {
+			BoardCell neighbourCell = nextNeighbour(currentCell, direction);			
+			if (board.contains(neighbourCell)) {
+				result.add(neighbourCell);
+				currentCell = neighbourCell;
+			} else {
+				return null;
+			}
+		}
+		return result;
+	}
+	
+	private BoardCell nextNeighbour(BoardCell cell, BuildingDirection direction) {
+		switch(direction) {
+			case UP: return cell.getUpperNeighbour();
+			case RIGHT: return cell.getRightNeighbour();
+			case DOWN: return cell.getLowerNeighbour();
+			default: return cell.getLeftNeighbour();
+		}
+	}
+	
 	public int getNumberOfDecks() {
 		return numberOfDecks;
 	}
 	
-	public void setState(ShipState state) {
-		this.state = state; 
+	public void setDeckState(BoardCell cell, BoardCellState state) {
+		for (BoardCell deck : getDeckList()) {
+			if (deck.equalsWithoutState(cell)) {
+				deck.setState(state);
+				return;
+			}
+		}
+		throw new IllegalArgumentException("Can't set a deck's state. This ship doesn't have suck deck");
 	}
 	
-	public ShipState getState() {
-		return state;
+	public boolean isAlive() {
+		int countAliveDecks = 0;
+		for (BoardCell deck : getDeckList()) {
+			if (deck.getState() == BoardCellState.ALIVE) {
+				countAliveDecks++;
+			}
+		}
+		return countAliveDecks > 0;
 	}
 	
 	public ArrayList<BoardCell> getDeckList() {
 		return new ArrayList<>(deckList);
+	}
+	
+	@Override
+	public boolean equals(Object otherShip) {
+		Ship shipToCompare = (Ship) otherShip;
+		return this.getDeckList().equals(shipToCompare.getDeckList());
 	}
 }
